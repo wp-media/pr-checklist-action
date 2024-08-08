@@ -15,7 +15,7 @@ export default class Util {
 
         try {
             const uncheckedTaskPattern = "[ ]";
-            const lines = body.split('\n');  // Split the body into lines
+            const lines = body.split('\n').map(line => line.trim().replace(/\u00A0/g, ' '));
 
             // Filter lines that contain the unchecked task pattern
             const uncompletedTasks = lines.filter(line => line.includes(uncheckedTaskPattern));
