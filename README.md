@@ -20,7 +20,7 @@ jobs:
   pr-checklist:
     runs-on: ubuntu-latest
     steps:
-      - uses: wp-media/pr-checklist-action@test/adaptation-to-WPMedia-template
+      - uses: wp-media/pr-checklist-action@master
         with:
           repo-token: "${{ secrets.PR_CHECKLIST_TOKEN }}"
 ```
