@@ -3,17 +3,9 @@ import * as github from '@actions/github'
 import Util from './utils'
 
 /**
- * This action will
- * 1. Read the PR body
- * 2. Get all the tasks
- * 3. Checks if all tasks are completed(checked)
- * 4. Return 
- *      success if
- *          there is no pr body 
- *          no tasks in pr body
- *          all tasks are completed(checked) 
- *      failure if 
- *          there are any pending tasks to be complated
+ * This action will retrieve the PR body and
+ * run custom tests. If one of them fails,
+ * the action fails and returns immediately.
  */
 
 async function run(): Promise<void> {
@@ -26,6 +18,7 @@ async function run(): Promise<void> {
             core.info("PR don't have tasks to check");
             return
         }
+
         // Ensure Description is modified
         core.debug('Checking Description...');
         let startString = "# Description";
@@ -90,7 +83,6 @@ async function run(): Promise<void> {
             core.setFailed(`Type of change section not found.`);
             return;
         }
-
         // get ticked tasks
         core.debug('Getting a list of ticked tasks: ');
         let typeOfChange = Util.getCompletedTasks(typeOfChangePortion);
@@ -114,8 +106,7 @@ async function run(): Promise<void> {
             core.setFailed(`Checklist section not found.`);
             return;
         }
-
-        // get ticked tasks
+        // get unticked tasks
         core.debug('Getting a list of unticked tasks: ');
         let uncompletedTasks = Util.getUncompletedTasks(checklistPortion);
         core.debug(uncompletedTasks);

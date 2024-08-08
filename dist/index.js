@@ -20,17 +20,9 @@ const core = __nccwpck_require__(9935);
 const github = __nccwpck_require__(2835);
 const utils_1 = __nccwpck_require__(963);
 /**
- * This action will
- * 1. Read the PR body
- * 2. Get all the tasks
- * 3. Checks if all tasks are completed(checked)
- * 4. Return
- *      success if
- *          there is no pr body
- *          no tasks in pr body
- *          all tasks are completed(checked)
- *      failure if
- *          there are any pending tasks to be complated
+ * This action will retrieve the PR body and
+ * run custom tests. If one of them fails,
+ * the action fails and returns immediately.
  */
 function run() {
     var _a;
@@ -158,10 +150,10 @@ run();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 class Util {
     /**
-     * This method will read the input string and match it with uncheck mark([ ]).
+     * This method will read the input string and match it with uncheck mark(- [ ]).
      * Gets the pending tasks
      *
-     * @param body PR body that has tasks
+     * @param body PR body portion that has tasks
      *
      * Returns
      *  empty string if there are no pending tasks
@@ -187,10 +179,10 @@ class Util {
         return responseString;
     }
     /**
-     * This method will read the input string and match it with check mark([x]).
+     * This method will read the input string and match it with check mark(- [x]).
      * Gets the completed tasks
      *
-     * @param body PR body that has tasks
+     * @param body PR body portion that has tasks
      *
      * Returns
      *  empty string if there are no completed tasks
@@ -216,14 +208,14 @@ class Util {
         return responseString;
     }
     /**
-     * This method will read the input string and match it with check mark([x]).
-     * Gets the completed tasks
+     * This method will extract the portion from a string between start and end strings.
      *
-     * @param body PR body that has tasks
+     * @param body The main string to extract from
+     * @param startString The beginning of the portion to isolate. It will be excluded from the result.
+     * @param endString optional The end of the portion to isolate. It will be excluded from the result. If not provided, the portion will go until end of file.
      *
      * Returns
-     *  empty string if there are no completed tasks
-     *  completed tasks string
+     *  If found, the sub-string in between startString and endString. Otherwise, an empty string.
      */
     static extractString(body, startString, endString) {
         const startIndex = body.indexOf(startString);
