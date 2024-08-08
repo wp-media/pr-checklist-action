@@ -1,49 +1,45 @@
-# PR TaskList Completed Checker Action
-A GitHub action that checks if all tasks are completed in the pull requests.
+# WP Media PR Checklist Action
+A GitHub action that performs checks on PR descriptions, according to WP Media PR template from https://github.com/wp-media/.github.
+
+This action runs the following tests:
+- Description contains at least one text line that is not the one of the template.
+- Documentation contains at least one text line that is not one from the template.
+- At least one type of change is set.
+- All items in the checklist are ticked.
 
 ## Usage
 
 ### Create a workflow
 ```yml
-name: 'PR TaskList Completed Checker'
+name: 'PR Checklist'
 on: 
   pull_request:
     types: [edited, opened, synchronize, reopened]
 
 jobs:
-  task-check:
+  pr-checklist:
     runs-on: ubuntu-latest
     steps:
-      - uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
+      - uses: wp-media/pr-checklist-action@test/adaptation-to-WPMedia-template
         with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          repo-token: "${{ secrets.PR_CHECKLIST_TOKEN }}"
 ```
 
-### Check whether tasks are completed
-Add a pull request template to your repository (`.github/pull_request_template.md`).
+### Token
 
-For example: 
-```markdown
-## Checklist
-- [ ] Completed code review
-- [ ] Ran unit tests
-- [ ] Completed e2e tests
-```
+The PR_CHECKLIST_TOKEN must provide read access to Pull Requests of the repository this action is used in.
 
-Create a pull request that contained tasks list to your repository. This will start a workflow automatically to check whether tasks are completed.
+### Making the check mandatory to merge
 
-Every update on a pull request will start a new workflow automatically to check pending tasks.
+Once the workflow file is commited, you can make the success mandatory before merging through branch protection:
+- Require status checks to pass before merging
+  - Require branches to be up to date before merging
+    - Search and select `pr-checklist`
 
-All tasks completed:
-![All tasks completed](images/success.png)
+## Build
 
-Some tasks are still pending:
-
-![Some tasks are still pending](images/failure.png)
-
-You can check a list of uncompleted tasks at the Actions page on clicking Details.
-![List of pending tasks](images/pending_tasks.png)
-
+Modification to the sources must be done in the `src` folder.
+Once the changes are done, `run npm run build && npm run pack` to update the `lib` & `dist` folder.
 
 ## :memo: Licence
 MIT
