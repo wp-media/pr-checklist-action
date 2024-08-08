@@ -45,7 +45,7 @@ async function run(): Promise<void> {
         }
     
         const checklistPortion = prBody.substring(startIndex + startString.length, endIndex).trim();
-
+        core.info(checklistPortion);
         // get the status of pending tasks
         core.debug('Getting a list of uncompleted tasks: ');
         let pendingTasks = Util.getPendingTasks(checklistPortion);
