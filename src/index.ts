@@ -28,9 +28,27 @@ async function run(): Promise<void> {
             return
         }
 
+        // Define the start and end strings to extract the relevant portion
+        const startString = "## Type of change";
+        const endString = "#";
+
+        // Extract the portion between the start and end strings
+        const startIndex = prBody.indexOf(startString);
+        if (startIndex === -1) {
+            core.info(`Start string "${startString}" not found in PR body.`);
+            return;
+        }
+        const endIndex = prBody.indexOf(endString, startIndex + startString.length);
+        if (endIndex === -1) {
+            core.info(`End string "${endString}" not found in PR body after start string.`);
+            return;
+        }
+    
+        const checklistPortion = prBody.substring(startIndex + startString.length, endIndex).trim();
+
         // get the status of pending tasks
         core.debug('Getting a list of uncompleted tasks: ');
-        let pendingTasks = Util.getPendingTasks(prBody);
+        let pendingTasks = Util.getPendingTasks(checklistPortion);
         core.debug(pendingTasks);
 
         let isTaskListCompleted = false;
