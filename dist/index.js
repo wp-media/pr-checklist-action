@@ -104,7 +104,7 @@ class Util {
      */
     static getPendingTasks(body) {
         let responseString = "";
-        const regex = /New feature/g;
+        const regex = /- \[ \]/g;
         const uncompletedTasks = body.match(regex);
         if (undefined != uncompletedTasks) {
             responseString += 'Uncompleted Tasks\n';

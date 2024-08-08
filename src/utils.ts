@@ -13,7 +13,7 @@ export default class Util {
     static getPendingTasks(body: string): string {
 
         let responseString = "";
-        const regex = /New feature/g;
+        const regex = /- \[ \]/g;
         const uncompletedTasks = body.match(regex);
         if (undefined != uncompletedTasks) {
 
