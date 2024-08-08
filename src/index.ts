@@ -29,7 +29,7 @@ async function run(): Promise<void> {
         // Ensure Description is modified
         core.debug('Checking Description...');
         let startString = "# Description";
-        let endString = "#";
+        let endString = "## Documentation";
         const descriptionPortion = Util.extractString(prBody, startString, endString)
         core.debug(descriptionPortion);
         if(!descriptionPortion) {

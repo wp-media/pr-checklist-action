@@ -45,7 +45,7 @@ function run() {
             // Ensure Description is modified
             core.debug('Checking Description...');
             let startString = "# Description";
-            let endString = "#";
+            let endString = "## Documentation";
             const descriptionPortion = utils_1.default.extractString(prBody, startString, endString);
             core.debug(descriptionPortion);
             if (!descriptionPortion) {
