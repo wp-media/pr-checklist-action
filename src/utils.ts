@@ -13,19 +13,14 @@ export default class Util {
     static getPendingTasks(body: string): string {
 
         let responseString = "";
-        try {
+        const regex = /- \[ \].+/g;
+        const uncompletedTasks = body.match(regex);
+        if (undefined != uncompletedTasks) {
 
-            const regex = /- \[ \].+/g;
-            const uncompletedTasks = body.match(regex);
-            if (undefined != uncompletedTasks) {
-
-                responseString += 'Uncompleted Tasks\n';
-                uncompletedTasks.forEach(u => {
-                    responseString += `${u}\n`;
-                });
-            }
-        } catch (e) {
-            responseString = "";
+            responseString += 'Uncompleted Tasks\n';
+            uncompletedTasks.forEach(u => {
+                responseString += `${u}\n`;
+            });
         }
 
         return responseString;
