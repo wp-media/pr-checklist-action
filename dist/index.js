@@ -42,38 +42,103 @@ function run() {
                 core.info("PR don't have tasks to check");
                 return;
             }
-            // Define the start and end strings to extract the relevant portion
-            const startString = "## Type of change";
-            const endString = "#";
-            // Extract the portion between the start and end strings
-            const startIndex = prBody.indexOf(startString);
-            if (startIndex === -1) {
-                core.info(`Start string "${startString}" not found in PR body.`);
+            // Ensure Description is modified
+            core.debug('Checking Description...');
+            let startString = "# Description";
+            let endString = "#";
+            const descriptionPortion = utils_1.default.extractString(prBody, startString, endString);
+            core.debug(descriptionPortion);
+            if (!descriptionPortion) {
+                core.setFailed(`Description section not found.`);
                 return;
             }
-            const endIndex = prBody.indexOf(endString, startIndex + startString.length);
-            if (endIndex === -1) {
-                core.info(`End string "${endString}" not found in PR body after start string.`);
+            const descriptionLines = descriptionPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
+            let descriptionExists = false;
+            // Check each line
+            for (const line of descriptionLines) {
+                // Trim leading/trailing whitespace
+                const trimmedLine = line.trim();
+                // Check if the line is not empty and not equal to the template one
+                if (trimmedLine.length > 0 && !trimmedLine.startsWith('Fixes #(issue number)')) {
+                    descriptionExists = true; // Found a valid line
+                    break;
+                }
+            }
+            if (!descriptionExists) {
+                core.setFailed(`Description not set: "${descriptionLines}"`);
                 return;
             }
-            const checklistPortion = prBody.substring(startIndex + startString.length, endIndex).trim();
-            core.info(checklistPortion);
-            // get the status of pending tasks
-            core.debug('Getting a list of uncompleted tasks: ');
-            let pendingTasks = utils_1.default.getPendingTasks(checklistPortion);
-            core.debug(pendingTasks);
-            let isTaskListCompleted = false;
-            if (!pendingTasks) {
-                isTaskListCompleted = true;
-            }
-            core.debug(`All tasks completed: ${isTaskListCompleted}`);
-            if (isTaskListCompleted) {
-                core.info(`SUCCESS: All tasks completed`);
+            // Ensure Documentation is modified
+            core.debug('Checking Documentation...');
+            startString = "## Documentation";
+            endString = "## Type of change";
+            const documentationPortion = utils_1.default.extractString(prBody, startString, endString);
+            core.debug(documentationPortion);
+            if (!documentationPortion) {
+                core.setFailed(`Documentation section not found.`);
                 return;
             }
-            else {
-                core.setFailed(`FAILED: Some tasks are still pending! \n${pendingTasks}\nLength: ${pendingTasks.length}`);
+            const documentationLines = documentationPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
+            let documentationExists = false;
+            // Check each line
+            for (const line of documentationLines) {
+                // Trim leading/trailing whitespace
+                const trimmedLine = line.trim();
+                // Check if the line is not empty and not equal to the template one
+                if (trimmedLine.length > 0 && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('*')) {
+                    documentationExists = true; // Found a valid line
+                    break;
+                }
             }
+            if (!documentationExists) {
+                core.setFailed(`Documentation not set: "${documentationLines}"`);
+                return;
+            }
+            // Ensure Type of change is selected
+            core.debug('Checking Type of Change...');
+            startString = "## Type of change";
+            endString = "#";
+            const typeOfChangePortion = utils_1.default.extractString(prBody, startString, endString);
+            core.debug(typeOfChangePortion);
+            if (!typeOfChangePortion) {
+                core.setFailed(`Type of change section not found.`);
+                return;
+            }
+            // get ticked tasks
+            core.debug('Getting a list of ticked tasks: ');
+            let typeOfChange = utils_1.default.getCompletedTasks(typeOfChangePortion);
+            core.debug(typeOfChange);
+            let isCheckPassed = false;
+            if (typeOfChange) {
+                isCheckPassed = true;
+            }
+            if (!isCheckPassed) {
+                core.setFailed(`Type of change not selected: "${typeOfChangePortion}"`);
+                return;
+            }
+            // Ensure Checklist is compelted
+            core.debug('Checking Checklist...');
+            startString = "# Checklists";
+            const checklistPortion = utils_1.default.extractString(prBody, startString);
+            core.debug(checklistPortion);
+            if (!checklistPortion) {
+                core.setFailed(`Checklist section not found.`);
+                return;
+            }
+            // get ticked tasks
+            core.debug('Getting a list of unticked tasks: ');
+            let uncompletedTasks = utils_1.default.getUncompletedTasks(checklistPortion);
+            core.debug(uncompletedTasks);
+            isCheckPassed = false;
+            if (!uncompletedTasks) {
+                isCheckPassed = true;
+            }
+            if (!isCheckPassed) {
+                core.setFailed(`Checklist not completed: "${uncompletedTasks}"`);
+                return;
+            }
+            core.info(`SUCCESS: All checks passed.`);
+            return;
         }
         catch (error) {
             core.setFailed(error.message);
@@ -102,11 +167,11 @@ class Util {
      *  empty string if there are no pending tasks
      *  pending tasks string
      */
-    static getPendingTasks(body) {
+    static getUncompletedTasks(body) {
         let responseString = "";
         try {
-            const uncheckedTaskPattern = "[ ]";
-            const lines = body.split('\n').map(line => line.trim().replace(/\u00A0/g, ' '));
+            const uncheckedTaskPattern = "- [ ]";
+            const lines = body.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible characters
             // Filter lines that contain the unchecked task pattern
             const uncompletedTasks = lines.filter(line => line.includes(uncheckedTaskPattern));
             if (uncompletedTasks.length > 0) {
@@ -115,14 +180,66 @@ class Util {
                     responseString += `${task}\n`;
                 });
             }
-            else {
-                responseString = `Error: ${lines}`;
+        }
+        catch (e) {
+            responseString = `Error: ${e.message}`;
+        }
+        return responseString;
+    }
+    /**
+     * This method will read the input string and match it with check mark([x]).
+     * Gets the completed tasks
+     *
+     * @param body PR body that has tasks
+     *
+     * Returns
+     *  empty string if there are no completed tasks
+     *  completed tasks string
+     */
+    static getCompletedTasks(body) {
+        let responseString = "";
+        try {
+            const checkedTaskPattern = "- [x]";
+            const lines = body.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible characters
+            // Filter lines that contain the unchecked task pattern
+            const completedTasks = lines.filter(line => line.includes(checkedTaskPattern));
+            if (completedTasks.length > 0) {
+                responseString += 'Completed Tasks\n';
+                completedTasks.forEach(task => {
+                    responseString += `${task}\n`;
+                });
             }
         }
         catch (e) {
             responseString = `Error: ${e.message}`;
         }
         return responseString;
+    }
+    /**
+     * This method will read the input string and match it with check mark([x]).
+     * Gets the completed tasks
+     *
+     * @param body PR body that has tasks
+     *
+     * Returns
+     *  empty string if there are no completed tasks
+     *  completed tasks string
+     */
+    static extractString(body, startString, endString) {
+        const startIndex = body.indexOf(startString);
+        if (startIndex === -1) {
+            return '';
+        }
+        if (endString === undefined) {
+            return body.substring(startIndex + startString.length).trim();
+        }
+        else {
+            const endIndex = body.indexOf(endString, startIndex + startString.length);
+            if (endIndex === -1) {
+                return '';
+            }
+            return body.substring(startIndex + startString.length, endIndex).trim();
+        }
     }
 }
 exports["default"] = Util;
