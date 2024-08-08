@@ -11,16 +11,25 @@ export default class Util {
      *  pending tasks string
      */
     static getPendingTasks(body: string): string {
-
         let responseString = "";
-        const regex = /- \[ \]/g;
-        const uncompletedTasks = body.match(regex);
-        if (undefined != uncompletedTasks) {
 
-            responseString += 'Uncompleted Tasks\n';
-            uncompletedTasks.forEach(u => {
-                responseString += `${u}\n`;
-            });
+        try {
+            const uncheckedTaskPattern = "- [ ]";
+            const lines = body.split('\n');  // Split the body into lines
+
+            // Filter lines that contain the unchecked task pattern
+            const uncompletedTasks = lines.filter(line => line.includes(uncheckedTaskPattern));
+
+            if (uncompletedTasks.length > 0) {
+                responseString += 'Uncompleted Tasks\n';
+                uncompletedTasks.forEach(task => {
+                    responseString += `${task}\n`;
+                });
+            } else {
+                responseString = 'No uncompleted tasks found.';
+            }
+        } catch (e) {
+            responseString = `Error: ${e.message}`;
         }
 
         return responseString;
