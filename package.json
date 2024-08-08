@@ -21,7 +21,8 @@
   "homepage": "https://github.com/venkatsarvesh/pr-tasks-completed-action#readme",
   "dependencies": {
     "@actions/core": "^1.2.4",
-    "@actions/github": "^4.0.0"
+    "@actions/github": "^4.0.0",
+    "ncc": "^0.3.6"
   },
   "devDependencies": {
     "typescript": "^3.9.6"
