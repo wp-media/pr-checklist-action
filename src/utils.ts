@@ -15,7 +15,8 @@ export default class Util {
         let responseString = "";
         try {
 
-            const uncompletedTasks = body.match(/(- \[[ ]\].+)/g);
+            const regex = /- \[ \].+/g;
+            const uncompletedTasks = body.match(regex);
             if (undefined != uncompletedTasks) {
 
                 responseString += 'Uncompleted Tasks\n';

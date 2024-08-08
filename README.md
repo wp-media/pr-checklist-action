@@ -28,6 +28,12 @@ For example:
 - [ ] Completed code review
 - [ ] Ran unit tests
 - [ ] Completed e2e tests
+*Delete options that are not relevant.*
+
+- [ ] New feature (non-breaking change which adds functionality).
+- [ ] Bug fix (non-breaking change which fixes an issue).
+- [ ] Enhancement (non-breaking change which improves an existing functionality).
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as before).
 ```
 
 Create a pull request that contained tasks list to your repository. This will start a workflow automatically to check whether tasks are completed.
