@@ -105,7 +105,7 @@ class Util {
     static getPendingTasks(body) {
         let responseString = "";
         try {
-            const uncheckedTaskPattern = "- [ ]";
+            const uncheckedTaskPattern = "[ ]";
             const lines = body.split('\n'); // Split the body into lines
             // Filter lines that contain the unchecked task pattern
             const uncompletedTasks = lines.filter(line => line.includes(uncheckedTaskPattern));
@@ -116,7 +116,7 @@ class Util {
                 });
             }
             else {
-                responseString = 'No uncompleted tasks found.';
+                responseString = `Error: ${lines}`;
             }
         }
         catch (e) {

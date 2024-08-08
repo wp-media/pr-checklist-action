@@ -14,7 +14,7 @@ export default class Util {
         let responseString = "";
 
         try {
-            const uncheckedTaskPattern = "- [ ]";
+            const uncheckedTaskPattern = "[ ]";
             const lines = body.split('\n');  // Split the body into lines
 
             // Filter lines that contain the unchecked task pattern
@@ -26,7 +26,7 @@ export default class Util {
                     responseString += `${task}\n`;
                 });
             } else {
-                responseString = 'No uncompleted tasks found.';
+                responseString = `Error: ${lines}`;
             }
         } catch (e) {
             responseString = `Error: ${e.message}`;
