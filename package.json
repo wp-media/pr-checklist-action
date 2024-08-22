@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/wp-media/pr-checklist-action#readme",
   "dependencies": {
-    "@actions/core": "^1.2.4",
+    "@actions/core": "^1.9.1",
     "@actions/github": "^4.0.0",
     "ncc": "^0.3.6"
   },
