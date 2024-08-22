@@ -29,7 +29,7 @@ async function run(): Promise<void> {
         // Ensure Type of change is selected
         core.debug('Checking Type of Change...');
         let startString = "## Type of change";
-        let endString = "#";
+        let endString = "## Detailed scenario";
         const typeOfChangePortion = Util.extractString(prBody, startString, endString)
         core.debug(typeOfChangePortion);
         if(!typeOfChangePortion) {
