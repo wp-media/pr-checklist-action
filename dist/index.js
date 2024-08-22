@@ -31,65 +31,19 @@ function run() {
             // read the pr body for tasks
             const prBody = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.body;
             if (!prBody) {
-                core.info("PR don't have tasks to check");
+                core.info("PR does not have a body.");
                 return;
             }
             // Ensure Description is modified
-            core.debug('Checking Description...');
-            let startString = "# Description";
-            let endString = "## Documentation";
-            const descriptionPortion = utils_1.default.extractString(prBody, startString, endString);
-            core.debug(descriptionPortion);
-            if (!descriptionPortion) {
-                core.setFailed(`Description section not found.`);
-                return;
-            }
-            const descriptionLines = descriptionPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
-            let descriptionExists = false;
-            // Check each line
-            for (const line of descriptionLines) {
-                // Trim leading/trailing whitespace
-                const trimmedLine = line.trim();
-                // Check if the line is not empty and not equal to the template one
-                if (trimmedLine.length > 0 && !trimmedLine.startsWith('Fixes #(issue number)')) {
-                    descriptionExists = true; // Found a valid line
-                    break;
-                }
-            }
+            let descriptionExists = utils_1.default.checkSectionModified('Description', prBody, "# Description", "## Type of change", ['Fixes #(issue number)', '*Explain how this code impacts users.*']);
             if (!descriptionExists) {
-                core.setFailed(`Description not set: "${descriptionLines}"`);
-                return;
-            }
-            // Ensure Documentation is modified
-            core.debug('Checking Documentation...');
-            startString = "## Documentation";
-            endString = "## Type of change";
-            const documentationPortion = utils_1.default.extractString(prBody, startString, endString);
-            core.debug(documentationPortion);
-            if (!documentationPortion) {
-                core.setFailed(`Documentation section not found.`);
-                return;
-            }
-            const documentationLines = documentationPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
-            let documentationExists = false;
-            // Check each line
-            for (const line of documentationLines) {
-                // Trim leading/trailing whitespace
-                const trimmedLine = line.trim();
-                // Check if the line is not empty and not equal to the template one
-                if (trimmedLine.length > 0 && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('*')) {
-                    documentationExists = true; // Found a valid line
-                    break;
-                }
-            }
-            if (!documentationExists) {
-                core.setFailed(`Documentation not set: "${documentationLines}"`);
+                core.setFailed(`Description not set."`);
                 return;
             }
             // Ensure Type of change is selected
             core.debug('Checking Type of Change...');
-            startString = "## Type of change";
-            endString = "#";
+            let startString = "## Type of change";
+            let endString = "#";
             const typeOfChangePortion = utils_1.default.extractString(prBody, startString, endString);
             core.debug(typeOfChangePortion);
             if (!typeOfChangePortion) {
@@ -108,16 +62,33 @@ function run() {
                 core.setFailed(`Type of change not selected: "${typeOfChangePortion}"`);
                 return;
             }
+            if (typeOfChange.includes('Release')) {
+                core.info("This is a release PR. The only mandatory check is the Description, which passed.");
+                return;
+            }
+            // Ensure Description is modified
+            let scenarioExists = utils_1.default.checkSectionModified('Detailed scenario', prBody, "## Detailed scenario", "## Technical description");
+            if (!scenarioExists) {
+                core.setFailed(`Detailed scenario not set."`);
+                return;
+            }
+            // Ensure Documentation is modified
+            let documentationExists = utils_1.default.checkSectionModified('Documentation', prBody, "### Documentation", "### New dependencies");
+            if (!documentationExists) {
+                core.setFailed(`Documentation not set."`);
+                return;
+            }
             // Ensure Checklist is compelted
-            core.debug('Checking Checklist...');
-            startString = "# Checklists";
-            const checklistPortion = utils_1.default.extractString(prBody, startString);
+            core.debug('Checking Mandatory Checklist...');
+            startString = "# Mandatory Checklist";
+            endString = "# Additional Checks";
+            const checklistPortion = utils_1.default.extractString(prBody, startString, endString);
             core.debug(checklistPortion);
             if (!checklistPortion) {
                 core.setFailed(`Checklist section not found.`);
                 return;
             }
-            // get ticked tasks
+            // get unticked tasks
             core.debug('Getting a list of unticked tasks: ');
             let uncompletedTasks = utils_1.default.getUncompletedTasks(checklistPortion);
             core.debug(uncompletedTasks);
@@ -143,11 +114,12 @@ run();
 /***/ }),
 
 /***/ 963:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __nccwpck_require__(9935);
 class Util {
     /**
      * This method will read the input string and match it with uncheck mark(- [ ]).
@@ -228,10 +200,56 @@ class Util {
         else {
             const endIndex = body.indexOf(endString, startIndex + startString.length);
             if (endIndex === -1) {
-                return '';
+                return body.substring(startIndex + startString.length).trim();
             }
             return body.substring(startIndex + startString.length, endIndex).trim();
         }
+    }
+    /**
+     * This method will extract the portion from a string between start and end strings.
+     *
+     * @param body The main string to extract from
+     * @param startString The beginning of the portion to isolate. It will be excluded from the result.
+     * @param endString optional The end of the portion to isolate. It will be excluded from the result. If not provided, the portion will go until end of file.
+     *
+     * Returns
+     *  If found, the sub-string in between startString and endString. Otherwise, an empty string.
+     */
+    static checkSectionModified(sectionName, prBody, startString, endString, lineStartsExclusions = ['*', '#']) {
+        core.debug(`Checking ${sectionName}...`);
+        const prPortion = Util.extractString(prBody, startString, endString);
+        core.debug(prPortion);
+        if (!prPortion) {
+            core.info(`${sectionName} section not found.`);
+            return false;
+        }
+        const portionLines = prPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
+        let portionModified = false;
+        let isValidLine;
+        // Check each line
+        for (const line of portionLines) {
+            isValidLine = true;
+            // Trim leading/trailing whitespace
+            const trimmedLine = line.trim();
+            // Check if the line is not empty and not equal to the template one
+            if (trimmedLine.length <= 0) {
+                continue;
+            }
+            for (const startExclusion of lineStartsExclusions) {
+                if (trimmedLine.startsWith(startExclusion)) {
+                    isValidLine = false;
+                    break;
+                }
+            }
+            if (isValidLine) { // Found a valid line
+                portionModified = true;
+                break;
+            }
+        }
+        if (!portionModified) {
+            core.info(`${sectionName} not set: "${portionLines}"`);
+        }
+        return portionModified;
     }
 }
 exports["default"] = Util;
