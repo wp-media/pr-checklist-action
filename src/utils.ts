@@ -84,7 +84,7 @@ export default class Util {
         } else {
             const endIndex = body.indexOf(endString, startIndex + startString.length);
             if (endIndex === -1) {
-                return '';
+                return body.substring(startIndex + startString.length).trim();
             }
             return body.substring(startIndex + startString.length, endIndex).trim();
         }

@@ -15,14 +15,14 @@ async function run(): Promise<void> {
         // read the pr body for tasks
         const prBody = github.context.payload.pull_request?.body;
         if (!prBody) {
-            core.info("PR don't have tasks to check");
+            core.info("PR does not have a body.");
             return
         }
 
         // Ensure Description is modified
         core.debug('Checking Description...');
         let startString = "# Description";
-        let endString = "## Documentation";
+        let endString = "## Type of change";
         const descriptionPortion = Util.extractString(prBody, startString, endString)
         core.debug(descriptionPortion);
         if(!descriptionPortion) {
@@ -36,7 +36,7 @@ async function run(): Promise<void> {
             // Trim leading/trailing whitespace
             const trimmedLine = line.trim();
             // Check if the line is not empty and not equal to the template one
-            if (trimmedLine.length > 0 && !trimmedLine.startsWith('Fixes #(issue number)') ) {
+            if (trimmedLine.length > 0 && !trimmedLine.startsWith('Fixes #(issue number)')  && !trimmedLine.startsWith('*Explain how this code impacts users.*')) {
                 descriptionExists = true;  // Found a valid line
                 break;
             }
@@ -46,10 +46,65 @@ async function run(): Promise<void> {
             return;
         }
 
+        // Ensure Type of change is selected
+        core.debug('Checking Type of Change...');
+        startString = "## Type of change";
+        endString = "#";
+        const typeOfChangePortion = Util.extractString(prBody, startString, endString)
+        core.debug(typeOfChangePortion);
+        if(!typeOfChangePortion) {
+            core.setFailed(`Type of change section not found.`);
+            return;
+        }
+        // get ticked tasks
+        core.debug('Getting a list of ticked tasks: ');
+        let typeOfChange = Util.getCompletedTasks(typeOfChangePortion);
+        core.debug(typeOfChange);
+    
+        let isCheckPassed = false;
+        if (typeOfChange) {
+            isCheckPassed = true;
+        }
+        if(!isCheckPassed){
+            core.setFailed(`Type of change not selected: "${typeOfChangePortion}"`);
+            return;
+        }
+        if(typeOfChange.includes('Release')){
+            core.info("This is a release PR. The only mandatory check is the Description, which passed.");
+            return;
+        }
+
+        // Ensure Detailed scenario is modified
+        core.debug('Checking Detailed scenario...');
+        startString = "## Detailed scenario";
+        endString = "## Technical description";
+        const scenarioPortion = Util.extractString(prBody, startString, endString)
+        core.debug(scenarioPortion);
+        if(!scenarioPortion) {
+            core.setFailed(`Detailed Scenario section not found.`);
+            return;
+        }
+        const scenarioLines = scenarioPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
+        let scenarioExists = false;
+        // Check each line
+        for (const line of scenarioLines) {
+            // Trim leading/trailing whitespace
+            const trimmedLine = line.trim();
+            // Check if the line is not empty and not equal to the template one
+            if (trimmedLine.length > 0 && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('*') ) {
+                scenarioExists = true;  // Found a valid line
+                break;
+            }
+        }
+        if(!scenarioExists){
+            core.setFailed(`Detailed Scenario not set: "${scenarioLines}"`);
+            return;
+        }
+
         // Ensure Documentation is modified
         core.debug('Checking Documentation...');
-        startString = "## Documentation";
-        endString = "## Type of change";
+        startString = "### Documentation";
+        endString = "### New dependencies";
         const documentationPortion = Util.extractString(prBody, startString, endString)
         core.debug(documentationPortion);
         if(!documentationPortion) {
@@ -73,34 +128,11 @@ async function run(): Promise<void> {
             return;
         }
 
-        // Ensure Type of change is selected
-        core.debug('Checking Type of Change...');
-        startString = "## Type of change";
-        endString = "#";
-        const typeOfChangePortion = Util.extractString(prBody, startString, endString)
-        core.debug(typeOfChangePortion);
-        if(!typeOfChangePortion) {
-            core.setFailed(`Type of change section not found.`);
-            return;
-        }
-        // get ticked tasks
-        core.debug('Getting a list of ticked tasks: ');
-        let typeOfChange = Util.getCompletedTasks(typeOfChangePortion);
-        core.debug(typeOfChange);
-
-        let isCheckPassed = false;
-        if (typeOfChange) {
-            isCheckPassed = true;
-        }
-        if(!isCheckPassed){
-            core.setFailed(`Type of change not selected: "${typeOfChangePortion}"`);
-            return;
-        }
-
         // Ensure Checklist is compelted
-        core.debug('Checking Checklist...');
-        startString = "# Checklists";
-        const checklistPortion = Util.extractString(prBody, startString)
+        core.debug('Checking Mandatory Checklist...');
+        startString = "# Mandatory Checklist";
+        endString = "# Additional Checks"
+        const checklistPortion = Util.extractString(prBody, startString, endString)
         core.debug(checklistPortion);
         if(!checklistPortion) {
             core.setFailed(`Checklist section not found.`);
