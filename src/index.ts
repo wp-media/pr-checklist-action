@@ -20,36 +20,16 @@ async function run(): Promise<void> {
         }
 
         // Ensure Description is modified
-        core.debug('Checking Description...');
-        let startString = "# Description";
-        let endString = "## Type of change";
-        const descriptionPortion = Util.extractString(prBody, startString, endString)
-        core.debug(descriptionPortion);
-        if(!descriptionPortion) {
-            core.setFailed(`Description section not found.`);
-            return;
-        }
-        const descriptionLines = descriptionPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
-        let descriptionExists = false;
-        // Check each line
-        for (const line of descriptionLines) {
-            // Trim leading/trailing whitespace
-            const trimmedLine = line.trim();
-            // Check if the line is not empty and not equal to the template one
-            if (trimmedLine.length > 0 && !trimmedLine.startsWith('Fixes #(issue number)')  && !trimmedLine.startsWith('*Explain how this code impacts users.*')) {
-                descriptionExists = true;  // Found a valid line
-                break;
-            }
-        }
+        let descriptionExists = Util.checkSectionModified('Description', prBody, "# Description", "## Type of change", ['Fixes #(issue number)', '*Explain how this code impacts users.*'])
         if(!descriptionExists){
-            core.setFailed(`Description not set: "${descriptionLines}"`);
+            core.setFailed(`Description not set."`);
             return;
         }
 
         // Ensure Type of change is selected
         core.debug('Checking Type of Change...');
-        startString = "## Type of change";
-        endString = "#";
+        let startString = "## Type of change";
+        let endString = "#";
         const typeOfChangePortion = Util.extractString(prBody, startString, endString)
         core.debug(typeOfChangePortion);
         if(!typeOfChangePortion) {
@@ -74,57 +54,17 @@ async function run(): Promise<void> {
             return;
         }
 
-        // Ensure Detailed scenario is modified
-        core.debug('Checking Detailed scenario...');
-        startString = "## Detailed scenario";
-        endString = "## Technical description";
-        const scenarioPortion = Util.extractString(prBody, startString, endString)
-        core.debug(scenarioPortion);
-        if(!scenarioPortion) {
-            core.setFailed(`Detailed Scenario section not found.`);
-            return;
-        }
-        const scenarioLines = scenarioPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
-        let scenarioExists = false;
-        // Check each line
-        for (const line of scenarioLines) {
-            // Trim leading/trailing whitespace
-            const trimmedLine = line.trim();
-            // Check if the line is not empty and not equal to the template one
-            if (trimmedLine.length > 0 && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('*') ) {
-                scenarioExists = true;  // Found a valid line
-                break;
-            }
-        }
-        if(!scenarioExists){
-            core.setFailed(`Detailed Scenario not set: "${scenarioLines}"`);
-            return;
-        }
 
-        // Ensure Documentation is modified
-        core.debug('Checking Documentation...');
-        startString = "### Documentation";
-        endString = "### New dependencies";
-        const documentationPortion = Util.extractString(prBody, startString, endString)
-        core.debug(documentationPortion);
-        if(!documentationPortion) {
-            core.setFailed(`Documentation section not found.`);
+        // Ensure Description is modified
+        let scenarioExists = Util.checkSectionModified('Detailed scenario', prBody, "## Detailed scenario", "## Technical description")
+        if(!scenarioExists){
+            core.setFailed(`Detailed scenario not set."`);
             return;
         }
-        const documentationLines = documentationPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
-        let documentationExists = false;
-        // Check each line
-        for (const line of documentationLines) {
-            // Trim leading/trailing whitespace
-            const trimmedLine = line.trim();
-            // Check if the line is not empty and not equal to the template one
-            if (trimmedLine.length > 0 && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('*') ) {
-                documentationExists = true;  // Found a valid line
-                break;
-            }
-        }
+        // Ensure Documentation is modified
+        let documentationExists = Util.checkSectionModified('Documentation', prBody, "### Documentation", "### New dependencies")
         if(!documentationExists){
-            core.setFailed(`Documentation not set: "${documentationLines}"`);
+            core.setFailed(`Documentation not set."`);
             return;
         }
 
