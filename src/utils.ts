@@ -1,3 +1,5 @@
+import * as core from '@actions/core'
+
 export default class Util {
 
     /**
@@ -84,10 +86,58 @@ export default class Util {
         } else {
             const endIndex = body.indexOf(endString, startIndex + startString.length);
             if (endIndex === -1) {
-                return '';
+                return body.substring(startIndex + startString.length).trim();
             }
             return body.substring(startIndex + startString.length, endIndex).trim();
         }
         
+    }
+    /**
+     * This method will extract the portion from a string between start and end strings.
+     * 
+     * @param body The main string to extract from
+     * @param startString The beginning of the portion to isolate. It will be excluded from the result.
+     * @param endString optional The end of the portion to isolate. It will be excluded from the result. If not provided, the portion will go until end of file.
+     * 
+     * Returns 
+     *  If found, the sub-string in between startString and endString. Otherwise, an empty string.
+     */
+    static checkSectionModified(sectionName: string, prBody:string, startString: string, endString: string, lineStartsExclusions: Array<string> = ['*', '#']): boolean {
+        core.debug(`Checking ${sectionName}...`);
+        const prPortion = Util.extractString(prBody, startString, endString)
+        core.debug(prPortion);
+        if(!prPortion) {
+            core.info(`${sectionName} section not found.`);
+            return false;
+        }
+        const portionLines = prPortion.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible character
+        let portionModified = false;
+        let isValidLine;
+        // Check each line
+        for (const line of portionLines) {
+            isValidLine = true;
+            // Trim leading/trailing whitespace
+            const trimmedLine = line.trim();
+            // Check if the line is not empty and not equal to the template one
+            if (trimmedLine.length <= 0){
+                continue;
+            }
+            for (const startExclusion of lineStartsExclusions) {
+                if (trimmedLine.startsWith(startExclusion)) {
+                    isValidLine = false;
+                    break;
+                }
+            }
+            if (isValidLine) { // Found a valid line
+                portionModified = true;  
+                break;
+            }
+        }
+
+        if (!portionModified){
+            core.info(`${sectionName} not set: "${portionLines}"`);
+        }
+
+        return portionModified;
     }
 }

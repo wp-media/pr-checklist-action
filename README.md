@@ -39,7 +39,7 @@ Once the workflow file is commited, you can make the success mandatory before me
 ## Build
 
 Modification to the sources must be done in the `src` folder.
-Once the changes are done, `run npm run build && npm run pack` to update the `lib` & `dist` folder.
+Once the changes are done, `npm run build && npm run pack` to update the `lib` & `dist` folder.
 
 ## :memo: Licence
 MIT
