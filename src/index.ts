@@ -55,7 +55,7 @@ async function run(): Promise<void> {
         }
 
 
-        // Ensure Description is modified
+        // Ensure Technical description is modified
         let scenarioExists = Util.checkSectionModified('Detailed scenario', prBody, "## Detailed scenario", "## Technical description")
         if(!scenarioExists){
             core.setFailed(`Detailed scenario not set."`);
@@ -68,28 +68,35 @@ async function run(): Promise<void> {
             return;
         }
 
-        // Ensure Checklist is compelted
-        core.debug('Checking Mandatory Checklist...');
-        startString = "# Mandatory Checklist";
-        endString = "# Additional Checks"
-        const checklistPortion = Util.extractString(prBody, startString, endString)
-        core.debug(checklistPortion);
-        if(!checklistPortion) {
-            core.setFailed(`Checklist section not found.`);
-            return;
+        // Ensure Checklist is completed
+        // Opt-out of mandatory checklist if a justification is provided
+        let untickedJustificationExists = Util.checkSectionModified('Unticked items justification', prBody, "## Unticked items justification", "# Additional Checks", ['*If some mandatory items are not relevant, explain why in this section.*'])
+        if(untickedJustificationExists){
+            core.info(`Unticked items justification is provided, the mandatory checklist verification is skipped."`);
         }
-        // get unticked tasks
-        core.debug('Getting a list of unticked tasks: ');
-        let uncompletedTasks = Util.getUncompletedTasks(checklistPortion);
-        core.debug(uncompletedTasks);
+        if(!untickedJustificationExists){
+            core.debug('Checking Mandatory Checklist...');
+            startString = "# Mandatory Checklist";
+            endString = "# Additional Checks"
+            const checklistPortion = Util.extractString(prBody, startString, endString)
+            core.debug(checklistPortion);
+            if(!checklistPortion) {
+                core.setFailed(`Checklist section not found.`);
+                return;
+            }
+            // get unticked tasks
+            core.debug('Getting a list of unticked tasks: ');
+            let uncompletedTasks = Util.getUncompletedTasks(checklistPortion);
+            core.debug(uncompletedTasks);
 
-        isCheckPassed = false;
-        if (!uncompletedTasks) {
-            isCheckPassed = true;
-        }
-        if(!isCheckPassed){
-            core.setFailed(`Checklist not completed: "${uncompletedTasks}"`);
-            return;
+            isCheckPassed = false;
+            if (!uncompletedTasks) {
+                isCheckPassed = true;
+            }
+            if(!isCheckPassed){
+                core.setFailed(`Checklist not completed: "${uncompletedTasks}"`);
+                return;
+            }
         }
 
         core.info(`SUCCESS: All checks passed.`);
