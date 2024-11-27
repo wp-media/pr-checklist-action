@@ -53,6 +53,10 @@ async function run(): Promise<void> {
             core.info("This is a release PR. The only mandatory check is the Description, which passed.");
             return;
         }
+        if(typeOfChange.includes('Chore')){
+            core.info("This is a chore PR. The only mandatory check is the Description, which passed.");
+            return;
+        }
 
 
         // Ensure Technical description is modified
