@@ -174,10 +174,10 @@ class Util {
     static getCompletedTasks(body) {
         let responseString = "";
         try {
-            const checkedTaskPattern = "- [x]";
+            const checkedTaskPatterns = ["- [x]", "- [X]"];
             const lines = body.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible characters
             // Filter lines that contain the unchecked task pattern
-            const completedTasks = lines.filter(line => line.includes(checkedTaskPattern));
+            const completedTasks = lines.filter(line => checkedTaskPatterns.some(pattern => line.includes(pattern)));
             if (completedTasks.length > 0) {
                 responseString += 'Completed Tasks\n';
                 completedTasks.forEach(task => {
