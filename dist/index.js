@@ -70,9 +70,14 @@ function run() {
                 core.info("This is a chore PR. The only mandatory check is the Description, which passed.");
                 return;
             }
-            // Ensure Technical description is modified
-            let scenarioExists = utils_1.default.checkSectionModified('Detailed scenario', prBody, "## Detailed scenario", "## Technical description");
-            if (!scenarioExists) {
+            // Ensure Detailed Scenario part is modified
+            let whattestedExists = utils_1.default.checkSectionModified('What was tested', prBody, "### What was tested", "### How to test");
+            if (!whattestedExists) {
+                core.setFailed(`Detailed scenario not set."`);
+                return;
+            }
+            let howtestExists = utils_1.default.checkSectionModified('What was tested', prBody, "### How to test", "## Technical description");
+            if (!howtestExists) {
                 core.setFailed(`Detailed scenario not set."`);
                 return;
             }
@@ -174,10 +179,10 @@ class Util {
     static getCompletedTasks(body) {
         let responseString = "";
         try {
-            const checkedTaskPatterns = ["- [x]", "- [X]"];
+            const checkedTaskPattern = "- [x]";
             const lines = body.split('\n').map(line => line.trim().replace(/\u00A0/g, ' ')); //Split in lines and sanitize for invisible characters
             // Filter lines that contain the unchecked task pattern
-            const completedTasks = lines.filter(line => checkedTaskPatterns.some(pattern => line.includes(pattern)));
+            const completedTasks = lines.filter(line => line.includes(checkedTaskPattern));
             if (completedTasks.length > 0) {
                 responseString += 'Completed Tasks\n';
                 completedTasks.forEach(task => {

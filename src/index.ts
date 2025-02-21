@@ -59,9 +59,14 @@ async function run(): Promise<void> {
         }
 
 
-        // Ensure Technical description is modified
-        let scenarioExists = Util.checkSectionModified('Detailed scenario', prBody, "## Detailed scenario", "## Technical description")
-        if(!scenarioExists){
+        // Ensure Detailed Scenario part is modified
+        let whattestedExists = Util.checkSectionModified('What was tested', prBody, "### What was tested", "### How to test")
+        if(!whattestedExists){
+            core.setFailed(`Detailed scenario not set."`);
+            return;
+        }
+        let howtestExists = Util.checkSectionModified('What was tested', prBody, "### How to test", "## Technical description")
+        if(!howtestExists){
             core.setFailed(`Detailed scenario not set."`);
             return;
         }
