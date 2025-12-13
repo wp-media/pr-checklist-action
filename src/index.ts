@@ -116,7 +116,8 @@ async function run(): Promise<void> {
         core.info(`SUCCESS: All checks passed.`);
         return;
     } catch (error) {
-        core.setFailed(error.message)
+        const message = error instanceof Error ? error.message : String(error);
+        core.setFailed(message);
     }
 }
 

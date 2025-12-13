@@ -29,7 +29,8 @@ export default class Util {
                 });
             }
         } catch (e) {
-            responseString = `Error: ${e.message}`;
+            const message = e instanceof Error ? e.message : String(e);
+            responseString = `Error: ${message}`;
         }
 
         return responseString;
@@ -61,7 +62,8 @@ export default class Util {
                 });
             }
         } catch (e) {
-            responseString = `Error: ${e.message}`;
+            const message = e instanceof Error ? e.message : String(e);
+            responseString = `Error: ${message}`;
         }
 
         return responseString;
