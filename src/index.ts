@@ -62,12 +62,17 @@ async function run(): Promise<void> {
         // Ensure Detailed Scenario part is modified
         let whattestedExists = Util.checkSectionModified('What was tested', prBody, "### What was tested", "### How to test")
         if(!whattestedExists){
-            core.setFailed(`Detailed scenario not set."`);
+            core.setFailed(`What was tested not set."`);
             return;
         }
-        let howtestExists = Util.checkSectionModified('What was tested', prBody, "### How to test", "## Technical description")
+        let howtestExists = Util.checkSectionModified('How to test', prBody, "### How to test", "### Affected Features & Quality Assurance Scope")
         if(!howtestExists){
-            core.setFailed(`Detailed scenario not set."`);
+            core.setFailed(`How to test not set."`);
+            return;
+        }
+        let impactedScopeExists = Util.checkSectionModified('Affected Features & Quality Assurance Scope', prBody, "### Affected Features & Quality Assurance Scope", '## Technical description')
+        if(!impactedScopeExists){
+            core.setFailed(`Affected Features & Quality Assurance Scope not set."`);
             return;
         }
         // Ensure Documentation is modified
