@@ -5,5 +5,5 @@ inputs:
     description: "The PR_CHECKLIST_TOKEN secret token with read access to Pull Requests."
     required: true
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"
