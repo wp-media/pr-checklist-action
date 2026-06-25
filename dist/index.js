@@ -126,7 +126,11 @@ class Util {
                 continue;
             }
             for (const startExclusion of lineStartsExclusions) {
-                if (trimmedLine.startsWith(startExclusion)) {
+                // For single '*', only match italic/placeholder text (*text*), not bold (**text**)
+                const matches = startExclusion === '*'
+                    ? /^\*(?!\*)/.test(trimmedLine)
+                    : trimmedLine.startsWith(startExclusion);
+                if (matches) {
                     isValidLine = false;
                     break;
                 }
