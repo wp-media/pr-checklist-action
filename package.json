@@ -21,7 +21,7 @@
   "homepage": "https://github.com/wp-media/pr-checklist-action#readme",
   "dependencies": {
     "@actions/core": "^1.9.1",
-    "@actions/github": "^4.0.0",
+    "@actions/github": "^9.1.1",
     "ncc": "^0.3.6"
   },
   "devDependencies": {
